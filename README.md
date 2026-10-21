@@ -11,7 +11,7 @@ d'attention.
 ---
 
 ## 📌 Sommaire
-[Lien vers l'application https://segmentation-patients-donnees-sante.streamlit.app/](#-Lien vers l'application https://segmentation-patients-donnees-sante.streamlit.app/-)
+[Lien vers l'application https://segmentation-patients-donnees-sante.streamlit.app/]
 1. [À quoi sert l'application ?](#-à-quoi-sert-lapplication-)
 2. [Les rubriques de l'application](#-les-rubriques-de-lapplication)
 3. [Les données](#-les-données)
