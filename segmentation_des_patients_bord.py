@@ -823,7 +823,6 @@
 # st.divider()
 # st.caption("Plateforme de démonstration analytique. Les profils et alertes sont indicatifs et doivent être validés par les professionnels de santé. Protégez les données personnelles et n'utilisez pas cet outil seul pour prendre une décision clinique.")
 import base64
-import hashlib
 import html
 import textwrap
 from io import BytesIO
@@ -955,13 +954,17 @@ HERO_SVG = r'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 480" wi
 HERO_ILLUSTRATION = "data:image/svg+xml;base64," + base64.b64encode(HERO_SVG.encode("utf-8")).decode("ascii")
 
 
-# ---------------------------------------------------------
-# Photos : lues dans le dossier "assets" placé à côté de app.py
-#   assets/photo_gauche.jpg  (hero, côté gauche)
-#   assets/photo_droite.jpg  (hero, côté droit)
-#   assets/photo_profil.jpg  (photo de Ibrahima Dieng)
-# ---------------------------------------------------------
-def charger_image(nom):
+def assurer_dossier_assets():
+    """Crée le dossier assets à côté de app.py s'il n'existe pas encore."""
+    dossier = Path(__file__).resolve().parent / "assets"
+    dossier.mkdir(parents=True, exist_ok=True)
+    return dossier
+
+
+DOSSIER_ASSETS = assurer_dossier_assets()
+
+
+def charger_image(nom, secours=""):
     """Cherche assets/<nom>.(jpg|jpeg|png|webp) ou <nom>.(...) à côté de app.py."""
     base = Path(__file__).resolve().parent
     radical = Path(nom).stem
@@ -971,13 +974,13 @@ def charger_image(nom):
             chemin = dossier / f"{radical}{ext}"
             if chemin.exists():
                 return f"data:{mime};base64," + base64.b64encode(chemin.read_bytes()).decode("ascii")
-    return ""
+    return secours
 
 
-PHOTO_GAUCHE = charger_image("photo_gauche")
-PHOTO_DROITE = charger_image("photo_droite")
-PHOTO_PROFIL = charger_image("photo_profil")
-IMAGE_PROFILS = charger_image("hero_patients") or HERO_ILLUSTRATION
+PHOTO_GAUCHE = charger_image("photo_gauche", "https://images.unsplash.com/photo-1551601651-2a8555f1a136?auto=format&fit=crop&w=900&q=80")
+PHOTO_DROITE = charger_image("photo_droite", "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80")
+PHOTO_PROFIL = charger_image("photo_profil", "")
+IMAGE_PROFILS = charger_image("hero_patients", HERO_ILLUSTRATION)
 
 GALERIE_PHOTOS = [
     ("Consultation médicale", "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80"),
@@ -1009,7 +1012,7 @@ CSS = """
 [data-testid="stHeader"] { background:transparent; }
 [data-testid="stDecoration"], footer, #MainMenu { display:none !important; visibility:hidden; }
 [data-testid="stSidebar"], [data-testid="collapsedControl"], [data-testid="stSidebarCollapsedControl"] { display:none !important; }
-.block-container { padding-top:1.6rem; padding-bottom:3rem; max-width:1400px; }
+.block-container { padding-top:0.8rem; padding-bottom:3rem; max-width:1400px; }
 
 h1,h2,h3,h4 { color:#FFFFFF !important; font-weight:800 !important; letter-spacing:.2px; }
 h1 { border-left:6px solid @CIEL@; padding-left:14px; }
@@ -1020,21 +1023,19 @@ hr { border-color:rgba(127,211,255,.18) !important; }
 a { color:@CLAIR@; }
 
 /* ---------- HERO ---------- */
-.hero { display:grid; grid-template-columns:1fr 1.75fr 1fr; height:310px; border-radius:24px; overflow:hidden;
+.hero { display:grid; grid-template-columns:1fr 1.75fr 1fr; height:290px; border-radius:24px; overflow:hidden;
   border:1px solid rgba(127,211,255,.35); box-shadow:0 22px 55px rgba(0,0,0,.5), 0 0 40px rgba(47,155,255,.18); }
-.hero-photo { position:relative; overflow:hidden; min-width:0; background:#FFFFFF; }
-.hero-photo img { width:100%; height:100%; object-fit:cover; display:block; filter:none; opacity:1; }
-.hero-copy { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:26px 34px;
+.hero-photo { position:relative; overflow:hidden; min-width:0; background:#0F2A52; }
+.hero-photo img { width:100%; height:100%; object-fit:cover; object-position:center top; display:block; filter:none; opacity:1; }
+.hero-copy { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:22px 30px;
   background:radial-gradient(circle at 20% 0%,rgba(127,211,255,.35),transparent 50%),linear-gradient(135deg,@NUIT@ 0%,#12305C 55%,@ROYAL@ 100%); }
-.hero-tag { font-size:11px; font-weight:800; letter-spacing:2px; color:@PALE@; background:rgba(127,211,255,.14); border:1px solid rgba(127,211,255,.45); padding:6px 16px; border-radius:999px; margin-bottom:14px; }
-.hero-title { color:#FFFFFF; font-size:clamp(19px,2.2vw,32px); line-height:1.22; font-weight:850; margin-bottom:12px; text-shadow:0 3px 14px rgba(0,0,0,.4); }
-.hero-bar { display:flex; gap:6px; margin-bottom:12px; }
+.hero-tag { font-size:11px; font-weight:800; letter-spacing:2px; color:@PALE@; background:rgba(127,211,255,.14); border:1px solid rgba(127,211,255,.45); padding:6px 16px; border-radius:999px; margin-bottom:12px; }
+.hero-title { color:#FFFFFF; font-size:clamp(18px,2.1vw,30px); line-height:1.22; font-weight:850; margin-bottom:10px; text-shadow:0 3px 14px rgba(0,0,0,.4); }
+.hero-bar { display:flex; gap:6px; margin-bottom:10px; }
 .hero-bar span { height:5px; border-radius:3px; display:block; }
-.hero-sub { color:#CFE6FF; font-size:clamp(12px,1.1vw,16px); line-height:1.6; }
-.hero-chips { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:14px; }
-.hero-chips span { font-size:12px; font-weight:700; color:#FFFFFF; background:rgba(47,155,255,.28); border:1px solid rgba(127,211,255,.45); padding:5px 13px; border-radius:999px; }
+.hero-sub { color:#CFE6FF; font-size:clamp(12px,1.05vw,15px); line-height:1.5; }
 @media(max-width:900px) { .hero { grid-template-columns:1fr 1fr; grid-template-rows:auto 150px; height:auto; }
-  .hero-copy { grid-column:1 / -1; grid-row:1; padding:22px 16px; } }
+  .hero-copy { grid-column:1 / -1; grid-row:1; padding:20px 16px; } }
 
 /* ---------- BOUTONS ---------- */
 .stButton>button, .stDownloadButton>button, [data-testid="stFormSubmitButton"]>button {
@@ -1044,16 +1045,16 @@ a { color:@CLAIR@; }
   background:linear-gradient(135deg,@CIEL@,@CLAIR@); color:#06152E; border-color:@PALE@; transform:translateY(-2px); box-shadow:0 10px 26px rgba(47,155,255,.45); }
 
 /* ---------- BARRE DE NAVIGATION ---------- */
-.st-key-nav { margin:26px 0 30px 0; padding:14px; border-radius:30px;
+.st-key-nav { margin:18px 0 26px 0; padding:12px; border-radius:30px;
   background:linear-gradient(135deg,rgba(15,42,82,.85),rgba(10,26,51,.85)); border:1px solid rgba(127,211,255,.22);
   box-shadow:0 14px 34px rgba(0,0,0,.4), inset 0 0 0 1px rgba(255,255,255,.03); }
-.st-key-nav button { min-height:54px; font-size:15px; border-radius:999px; font-weight:800;
+.st-key-nav button { min-height:50px; font-size:14px; border-radius:999px; font-weight:800;
   background:linear-gradient(135deg,@NUIT2@,#12305C); color:@PALE@; border:1.5px solid rgba(127,211,255,.35); box-shadow:none; }
 .st-key-nav button p { color:inherit !important; font-weight:800; margin:0; }
 .st-key-nav button:hover { background:linear-gradient(135deg,@ROYAL@,@CIEL@); color:#FFFFFF; border-color:@CLAIR@;
-  transform:translateY(-3px) scale(1.02); box-shadow:0 12px 28px rgba(47,155,255,.5); }
+  transform:translateY(-2px); box-shadow:0 10px 24px rgba(47,155,255,.45); }
 .st-key-nav button[kind="primary"], .st-key-nav [data-testid="stBaseButton-primary"] {
-  background:linear-gradient(135deg,@CIEL@,@CLAIR@); color:#06152E; border-color:@PALE@; box-shadow:0 0 0 3px rgba(127,211,255,.25), 0 10px 30px rgba(127,211,255,.55); }
+  background:linear-gradient(135deg,@CIEL@,@CLAIR@); color:#06152E; border-color:@PALE@; box-shadow:0 0 0 3px rgba(127,211,255,.25), 0 10px 28px rgba(127,211,255,.5); }
 
 /* ---------- MÉTRIQUES, CARTES, ENCARTS ---------- */
 [data-testid="stMetric"] { background:linear-gradient(145deg,@NUIT2@,#0B1F3F); border:1px solid rgba(127,211,255,.25); border-radius:16px; padding:18px; box-shadow:0 8px 22px rgba(0,0,0,.35); }
@@ -1093,21 +1094,12 @@ input, textarea { color:#FFFFFF !important; -webkit-text-fill-color:#FFFFFF !imp
 [data-testid="stFileUploaderDropzone"] * { color:#CFE6FF !important; }
 [data-testid="stForm"] { background:linear-gradient(150deg,rgba(15,42,82,.7),rgba(10,26,51,.7)); border:1px solid rgba(127,211,255,.22); border-radius:18px; padding:20px; }
 
-/* ---------- BOÎTES DE DIALOGUE STREAMLIT (menu, Clear caches...) ---------- */
-div[data-testid="stDialog"] div[role="dialog"] { background:linear-gradient(150deg,@NUIT2@,#0B1F3F) !important; border:1px solid rgba(127,211,255,.35); border-radius:18px; }
-div[data-testid="stDialog"] div[role="dialog"] *, div[data-testid="stDialog"] p, div[data-testid="stDialog"] h1, div[data-testid="stDialog"] h2, div[data-testid="stDialog"] h3 { color:#FFFFFF !important; }
-div[data-testid="stDialog"] code { background:rgba(127,211,255,.18) !important; color:@PALE@ !important; border-radius:6px; padding:2px 6px; }
-div[data-testid="stDialog"] button[aria-label="Close"], div[data-testid="stDialog"] button[aria-label="Close"] svg { color:#FFFFFF !important; fill:#FFFFFF !important; }
-div[data-testid="stDialog"] .stButton>button, div[data-testid="stDialog"] button[kind] { background:linear-gradient(135deg,@ROYAL@,@CIEL@) !important; border:1px solid rgba(127,211,255,.5) !important; color:#FFFFFF !important; }
-div[data-testid="stDialog"] .stButton>button:hover { background:linear-gradient(135deg,@CIEL@,@CLAIR@) !important; color:#06152E !important; }
-div[data-testid="stDialog"] .stButton>button:hover * { color:#06152E !important; }
-
 /* ---------- GALERIE ---------- */
 .gal { width:100%; overflow:hidden; padding:16px 0; background:linear-gradient(135deg,#071326,@NUIT2@); border:1px solid rgba(127,211,255,.25); border-radius:18px; }
 .gal-track { display:flex; width:max-content; gap:18px; animation:gal-scroll 40s linear infinite; }
 .gal:hover .gal-track { animation-play-state:paused; }
 .gal-card { width:280px; flex-shrink:0; overflow:hidden; border-radius:14px; background:@NUIT2@; border:1px solid rgba(127,211,255,.3); box-shadow:0 8px 20px rgba(0,0,0,.4); }
-.gal-card img { display:block; width:100%; height:180px; object-fit:cover; filter:saturate(.9) brightness(.95); }
+.gal-card img { display:block; width:100%; height:180px; object-fit:cover; object-position:center top; filter:saturate(.9) brightness(.95); }
 .gal-cap { padding:12px; color:@PALE@; font-size:15px; font-weight:700; text-align:center; }
 @keyframes gal-scroll { from { transform:translateX(-50%); } to { transform:translateX(0); } }
 @media(prefers-reduced-motion:reduce) { .gal-track { animation:none; } }
@@ -1124,13 +1116,13 @@ st.markdown(CSS, unsafe_allow_html=True)
 def etendre(fonction, *args, **kwargs):
     try:
         return fonction(*args, width="stretch", **kwargs)
-    except Exception:
+    except TypeError:
         return fonction(*args, use_container_width=True, **kwargs)
 
 
 def boite(texte, titre=""):
-    t = f'<b class="t">{titre}</b>' if titre else ""
-    st.markdown(f'<div class="callout">{t}{texte}</div>', unsafe_allow_html=True)
+    t = f'<b class="t">{html.escape(titre)}</b>' if titre else ""
+    st.markdown(f'<div class="callout">{t}{html.escape(texte)}</div>', unsafe_allow_html=True)
 
 
 def espace(v):
@@ -1278,11 +1270,16 @@ def generer_alertes(df):
 
     def reco(r):
         p = []
-        if r["Age"] >= 65: p.append("Examiner les besoins de suivi liés à l'âge")
-        if r["IMC"] >= 30: p.append("Évaluer les facteurs associés à l'IMC")
-        if r["Hospitalisations"] >= 3: p.append("Revoir l'historique des hospitalisations")
-        if r["Fumeur_binaire"] == 1: p.append("Évaluer les besoins d'accompagnement au sevrage")
+        if r["Age"] >= 65:
+            p.append("Examiner les besoins de suivi liés à l'âge")
+        if r["IMC"] >= 30:
+            p.append("Évaluer les facteurs associés à l'IMC")
+        if r["Hospitalisations"] >= 3:
+            p.append("Revoir l'historique des hospitalisations")
+        if r["Fumeur_binaire"] == 1:
+            p.append("Évaluer les besoins d'accompagnement au sevrage")
         return " ; ".join(p) + "." if p else "Poursuivre le suivi selon le dossier clinique."
+
     df["Recommandation"] = df.apply(reco, axis=1)
     return df
 
@@ -1300,439 +1297,401 @@ COLONNES_TECHNIQUES = {"Fumeur_binaire", "Cluster", "Profil", "Nombre_facteurs_a
 
 
 def est_identifiant(nom):
-    n = "".join(ch.lower() for ch in str(nom) if ch.isalnum())
-    termes = ("patientid", "idpatient", "identifiant", "numerodossier", "telephone", "email", "adresse", "nompatient", "prenompatient")
-    return n in {"id", "uuid", "email", "telephone", "phone"} or any(t in n for t in termes)
+    n = nom.strip().lower()
+    return n in {"id", "patient_id", "index"} or n.endswith("_id") or n.startswith("id_")
 
 
-colonnes_knn = [c for c in df_base.columns
-                if c not in COLONNES_TECHNIQUES and not est_identifiant(c)
-                and df_base[c].notna().sum() > 0 and df_base[c].nunique(dropna=True) > 1]
-
-knn = label_encoder = scaler_knn = None
-colonnes_encodees = []
-if len(df_alertes) >= 3 and colonnes_knn:
-    dk = df_base[colonnes_knn].copy()
-    for c in colonnes_knn:
-        if pd.api.types.is_numeric_dtype(dk[c]):
-            dk[c] = pd.to_numeric(dk[c], errors="coerce")
-            m = dk[c].median()
-            dk[c] = dk[c].fillna(0 if pd.isna(m) else m)
+def entrainer_knn(df_seg, k=5):
+    if len(df_seg) < 3 or "Profil" not in df_seg.columns:
+        return None
+    features_cols = [c for c in df_seg.columns if c not in COLONNES_TECHNIQUES and not est_identifiant(c)]
+    if not features_cols:
+        features_cols = FEATURES
+    X_parts = []
+    encoders = {}
+    for col in features_cols:
+        if pd.api.types.is_numeric_dtype(df_seg[col]):
+            vals = pd.to_numeric(df_seg[col], errors="coerce").fillna(0.0).to_numpy(dtype=float).reshape(-1, 1)
+            X_parts.append(vals)
         else:
-            dk[c] = dk[c].fillna("Non renseigné").astype(str).str.strip()
-    Xk = pd.get_dummies(dk, dummy_na=False, dtype=float)
-    Xk = Xk.loc[:, Xk.nunique(dropna=False) > 1]
-    colonnes_encodees = list(Xk.columns)
-    if Xk.shape[1] > 0:
-        scaler_knn = StandardScaler()
-        Xs = scaler_knn.fit_transform(Xk.astype(float))
-        label_encoder = LabelEncoder()
-        y = label_encoder.fit_transform(df_alertes["Profil"].astype(str))
-        knn = KNeighborsClassifier(n_neighbors=min(5, len(df_alertes))).fit(Xs, y)
+            le = LabelEncoder()
+            encoded = le.fit_transform(df_seg[col].astype(str)).reshape(-1, 1).astype(float)
+            encoders[col] = le
+            X_parts.append(encoded)
+    X = np.hstack(X_parts)
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    k_eff = max(1, min(int(k), len(df_seg)))
+    knn = KNeighborsClassifier(n_neighbors=k_eff)
+    knn.fit(X_scaled, df_seg["Profil"])
+    return {
+        "model": knn,
+        "scaler": scaler,
+        "encoders": encoders,
+        "features": features_cols,
+        "X_scaled": X_scaled,
+        "df_seg": df_seg,
+    }
+
+
+def predire_knn(bundle, saisies):
+    row = []
+    for col in bundle["features"]:
+        val = saisies.get(col)
+        if col in bundle["encoders"]:
+            le = bundle["encoders"][col]
+            s_val = str(val)
+            if s_val in le.classes_:
+                row.append(float(le.transform([s_val])[0]))
+            else:
+                row.append(0.0)
+        else:
+            row.append(float(val if val is not None else 0.0))
+    x_scaled = bundle["scaler"].transform(np.array([row], dtype=float))
+    pred = bundle["model"].predict(x_scaled)[0]
+    proba = bundle["model"].predict_proba(x_scaled)[0]
+    classes = list(bundle["model"].classes_)
+    probs_dict = {cls: float(p) for cls, p in zip(classes, proba)}
+    dists, indices = bundle["model"].kneighbors(x_scaled)
+    voisins = bundle["df_seg"].iloc[indices[0]].copy()
+    voisins["Distance"] = np.round(dists[0], 3)
+    return pred, probs_dict, voisins
+
 
 # =========================================================
-# 5. HERO + NAVIGATION
+# 5. EN-TÊTE VISUEL (HERO) + BARRE DE NAVIGATION EN HAUT
 # =========================================================
-st.markdown(f"""
-<div class="hero">
-  <div class="hero-photo"><img src="{PHOTO_GAUCHE}" alt="Soignante au chevet d'un patient" /></div>
-  <div class="hero-copy">
-    <span class="hero-tag">MACHINE LEARNING · CAH + KNN</span>
-    <div class="hero-title">Plateforme Nationale de Segmentation<br>et Sécurisation du Parcours Patients</div>
-    <div class="hero-bar"><span style="width:70px;background:{CLAIR}"></span><span style="width:44px;background:{CIEL}"></span><span style="width:28px;background:{INDIGO}"></span></div>
-    <div class="hero-sub">Outil d'aide à l'analyse des données, à l'orientation<br>et au suivi des dossiers patients.</div>
-    <div class="hero-chips"><span>Adultes en suivi de routine</span><span>Seniors très hospitalisés</span><span>Fumeurs obèses</span></div>
-  </div>
-  <div class="hero-photo"><img src="{PHOTO_DROITE}" alt="Équipe soignante devant l'hôpital" /></div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown(
+    f"""
+    <div class="hero">
+        <div class="hero-photo"><img src="{PHOTO_GAUCHE}" alt="Équipe médicale devant l'hôpital"></div>
+        <div class="hero-copy">
+            <div class="hero-tag">SANTÉ · ANALYSE CLINIQUE & IA</div>
+            <div class="hero-title">Plateforme Nationale de Segmentation des Patients</div>
+            <div class="hero-bar">
+                <span style="width:44px;background:{CLAIR};"></span>
+                <span style="width:26px;background:{CIEL};"></span>
+                <span style="width:14px;background:{PALE};"></span>
+            </div>
+            <div class="hero-sub">Segmentation CAH, orientation KNN et surveillance des alertes cliniques</div>
+        </div>
+        <div class="hero-photo"><img src="{PHOTO_DROITE}" alt="Accompagnement des patients"></div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-if "page" not in st.session_state:
-    st.session_state["page"] = PAGES[0]
+if "page_active" not in st.session_state:
+    st.session_state["page_active"] = PAGES[0]
 
 with st.container(key="nav"):
-    colonnes_nav = st.columns(len(PAGES), gap="small")
-    for colonne, nom in zip(colonnes_nav, PAGES):
-        actif = st.session_state["page"] == nom
-        if etendre(colonne.button, nom, key=f"nav_{nom}", type="primary" if actif else "secondary"):
-            st.session_state["page"] = nom
+    cols_nav = st.columns(len(PAGES))
+    for idx, libelle in enumerate(PAGES):
+        est_actif = st.session_state["page_active"] == libelle
+        if cols_nav[idx].button(
+            libelle,
+            key=f"btn_nav_{idx}",
+            type="primary" if est_actif else "secondary",
+            use_container_width=True,
+        ):
+            st.session_state["page_active"] = libelle
             st.rerun()
 
-page = st.session_state["page"]
-n = len(df_alertes)
-
-
-def pourcent(x):
-    return f"{100 * x / n:.1f} %".replace(".", ",") if n else "0 %"
-
+page = st.session_state["page_active"]
 
 # =========================================================
-# 6. ACCUEIL
+# 6. PAGES DE L'APPLICATION
 # =========================================================
-if page == PAGES[0]:
-    st.title("Accueil")
-    st.markdown("Vue d'ensemble de la plateforme : indicateurs clés, profils statistiques et fonctionnement.")
-    rouges = int((df_alertes["Niveau_alerte"] == "Critique").sum())
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Patients enregistrés", espace(n))
-    c2.metric("Alertes critiques", espace(rouges))
-    c3.metric("Profil seniors", espace((df_alertes["Profil"] == PROFILS[1]).sum()))
-    c4.metric("Profil fumeurs obèses", espace((df_alertes["Profil"] == PROFILS[2]).sum()))
-    st.write("")
+if page == "🏠 Accueil":
+    st.title("Accueil — Segmentation & Orientation Clinique")
+    st.caption(f"Source active : {st.session_state.get('source_donnees', 'Démonstration')} · {espace(len(df_alertes))} dossiers patients")
 
-    st.subheader("Les trois profils statistiques")
-    st.markdown(f'<div style="border:1px solid rgba(127,211,255,.3);border-radius:20px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.4);margin-bottom:16px;line-height:0;"><img src="{IMAGE_PROFILS}" style="width:100%;height:auto;display:block;" alt="Les trois profils de patients"></div>', unsafe_allow_html=True)
-    descr = {
-        PROFILS[0]: "Âge intermédiaire, IMC modéré et peu d'hospitalisations : un suivi de routine suffit en général.",
-        PROFILS[1]: "Âge élevé et hospitalisations répétées : profil nécessitant une attention soutenue du parcours de soins.",
-        PROFILS[2]: "Tabagisme associé à un IMC élevé : profil à accompagner (prévention, sevrage, nutrition).",
-    }
-    cols = st.columns(3, gap="large")
-    for col, p in zip(cols, PROFILS.values()):
-        nb = int((df_alertes["Profil"] == p).sum())
-        col.markdown(f'<div class="pcard" style="border-top:5px solid {COULEUR_PROFIL[p]};"><div class="n">{espace(nb)}</div><div style="color:{COULEUR_PROFIL[p]};font-weight:800;">{pourcent(nb)} des patients</div><h4>{html.escape(p)}</h4><div class="d">{html.escape(descr[p])}</div></div>', unsafe_allow_html=True)
-    st.write("")
+    nb_crit = int((df_alertes["Niveau_alerte"] == "Critique").sum()) if not df_alertes.empty else 0
+    nb_elev = int((df_alertes["Niveau_alerte"] == "Élevé").sum()) if not df_alertes.empty else 0
+    age_moy = round(float(df_alertes["Age"].mean()), 1) if not df_alertes.empty else 0.0
 
-    st.subheader("Comment fonctionne la plateforme")
-    etapes = [("1", "Importer", "Chargement du fichier CSV des patients."),
-              ("2", "Segmenter", "Classification hiérarchique ascendante (CAH) en 3 profils."),
-              ("3", "Orienter", "Suggestion de profil d'un nouveau dossier par KNN."),
-              ("4", "Alerter", "Niveaux d'alerte et pistes de vigilance par patient.")]
-    cols = st.columns(4, gap="medium")
-    for col, (i, t, d) in zip(cols, etapes):
-        col.markdown(f'<div class="step"><div class="i">{i}</div><b>{t}</b><span>{d}</span></div>', unsafe_allow_html=True)
-    st.write("")
+    st.markdown(
+        f"""
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Patients analysés</div>
+                <div class="kpi-value">{espace(len(df_alertes))}</div>
+                <div class="kpi-sub">Dossiers consolidés dans la base</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Alertes critiques</div>
+                <div class="kpi-value">{espace(nb_crit)}</div>
+                <div class="kpi-sub">3 facteurs de risque ou plus</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Alertes élevées</div>
+                <div class="kpi-value">{espace(nb_elev)}</div>
+                <div class="kpi-sub">2 facteurs de risque identifiés</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Âge moyen</div>
+                <div class="kpi-value">{age_moy} ans</div>
+                <div class="kpi-sub">Moyenne de la cohorte actuelle</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    st.subheader("Galerie médicale")
-    cartes = "".join(f'<div class="gal-card"><img src="{html.escape(u, quote=True)}" alt="{html.escape(t)}"><div class="gal-cap">{html.escape(t)}</div></div>' for t, u in GALERIE_PHOTOS * 2)
-    st.markdown(f'<div class="gal"><div class="gal-track">{cartes}</div></div>', unsafe_allow_html=True)
-    st.caption("Survolez la galerie pour mettre le défilement en pause.")
-    boite("Les profils sont des regroupements statistiques destinés à faciliter l'analyse. Ils ne constituent ni un diagnostic médical ni une décision automatique de prise en charge.", "À retenir")
-
-# =========================================================
-# 7. TABLEAU DE BORD
-# =========================================================
-elif page == PAGES[1]:
-    ordre = list(PROFILS.values())
-    st.title("Tableau de bord")
-    st.caption("Segmentation, caractéristiques des patients, répartition géographique et alertes.")
-    n_crit = int((df_alertes["Niveau_alerte"] == "Critique").sum())
-    n_elev = int((df_alertes["Niveau_alerte"] == "Élevé").sum())
-    kpis = [
-        ("Patients analysés", espace(n), f"{df_alertes['Region'].nunique()} région(s) · âge moyen {df_alertes['Age'].mean():.0f} ans"),
-        ("Profils identifiés", str(df_alertes["Profil"].nunique()), "Segmentation hiérarchique (CAH)"),
-        ("Alertes critiques", espace(n_crit), f"{pourcent(n_crit)} des patients"),
-        ("Alertes élevées", espace(n_elev), f"{pourcent(n_elev)} des patients"),
+    st.subheader("Profils cliniques identifiés (CAH Ward)")
+    c1, c2, c3 = st.columns(3)
+    profil_meta = [
+        (0, c1, "Suivi régulier et prévention de base sur les paramètres cliniques courants."),
+        (1, c2, "Âge avancé et récurrence des séjours nécessitant une coordination soutenue."),
+        (2, c3, "Combinaison tabagisme et IMC élevé requérant un accompagnement ciblé."),
     ]
-    st.markdown('<div class="kpi-grid">' + "".join(
-        f'<div class="kpi-card"><div class="kpi-label">{html.escape(l)}</div><div class="kpi-value">{v}</div><div class="kpi-sub">{html.escape(s)}</div></div>'
-        for l, v, s in kpis) + "</div>", unsafe_allow_html=True)
-    st.write("")
-    comptes = df_alertes["Profil"].value_counts().reindex(ordre, fill_value=0)
+    for pid, col, desc in profil_meta:
+        nom_p = PROFILS[pid]
+        cnt = int((df_alertes["Profil"] == nom_p).sum()) if "Profil" in df_alertes.columns else 0
+        pct = round(100 * cnt / max(1, len(df_alertes)), 1)
+        with col:
+            st.markdown(
+                f"""
+                <div class="pcard">
+                    <span class="badge-niv" style="background:{rgba(COULEUR_PROFIL[nom_p], 0.22)};color:{COULEUR_PROFIL[nom_p]};border:1px solid {COULEUR_PROFIL[nom_p]};">Cluster {pid}</span>
+                    <h4>{html.escape(nom_p)}</h4>
+                    <div class="n">{espace(cnt)} <span style="font-size:15px;color:#9FC4EA;">({pct}%)</span></div>
+                    <div class="d">{html.escape(desc)}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
-    g, d = st.columns(2, gap="large")
-    with g:
-        st.subheader("Répartition des profils")
-        fig = go.Figure(go.Pie(
-            labels=list(comptes.index), values=list(comptes.values), hole=0.62, sort=False,
-            marker=dict(colors=[COULEUR_PROFIL[p] for p in comptes.index], line=dict(color=NUIT, width=3)),
-            pull=[0.03] * 3, textinfo="percent", insidetextfont=dict(size=15, color=["#06152E", "#06152E", "#FFFFFF"]),
-            hovertemplate="<b>%{label}</b><br>Patients : %{value}<br>Part : %{percent}<extra></extra>"))
-        fig.add_annotation(text=f"<b>{espace(n)}</b><br><span style='font-size:13px;color:{CLAIR}'>patients</span>",
-                           x=0.5, y=0.5, showarrow=False, font=dict(size=32, color="#FFFFFF"))
-        habiller(fig, 460, margin=dict(l=15, r=15, t=20, b=80))
-        etendre(st.plotly_chart, fig)
-    with d:
-        st.subheader("Volume de patients par profil")
-        fig = go.Figure(go.Bar(
-            x=list(comptes.values), y=[court(p) for p in comptes.index], orientation="h",
-            marker=dict(color=[COULEUR_PROFIL[p] for p in comptes.index], line=dict(color=NUIT, width=1)),
-            text=[f"{espace(v)}  ({pourcent(v)})" for v in comptes.values], textposition="outside", cliponaxis=False,
-            textfont=dict(size=14, color="#FFFFFF"), hovertemplate="<b>%{y}</b><br>Patients : %{x}<extra></extra>"))
-        habiller(fig, 460, showlegend=False, margin=dict(l=20, r=80, t=20, b=40),
-                 xaxis=dict(title="Nombre de patients", range=[0, max(int(comptes.max()), 1) * 1.4]),
-                 yaxis=dict(autorange="reversed", automargin=True, tickfont=dict(size=12, color="#CFE6FF")))
-        etendre(st.plotly_chart, fig)
-    st.write("")
+    st.subheader("Parcours en 4 étapes")
+    etapes = [
+        ("1", "Import ou démo", "Chargez votre CSV ou testez la base simulée."),
+        ("2", "Segmentation", "Regroupement hiérarchique en 3 profils."),
+        ("3", "Orientation KNN", "Classez un nouveau patient par proximité."),
+        ("4", "Alertes & export", "Ciblez les priorités et exportez les résultats."),
+    ]
+    ecols = st.columns(4)
+    for idx, (num, titre, texte) in enumerate(etapes):
+        with ecols[idx]:
+            st.markdown(
+                f'<div class="step"><div class="i">{num}</div><b>{html.escape(titre)}</b><span>{html.escape(texte)}</span></div>',
+                unsafe_allow_html=True,
+            )
 
-    g, d = st.columns(2, gap="large")
-    with g:
-        st.subheader("Répartition par âge et par profil")
-        fig = go.Figure()
-        for p in ordre:
-            dd = df_alertes[df_alertes["Profil"] == p]
-            fig.add_trace(go.Histogram(x=dd["Age"], name=p, xbins=dict(size=5),
-                                       marker=dict(color=COULEUR_PROFIL[p], line=dict(color=NUIT, width=1)),
-                                       hovertemplate="Âge : %{x}<br>Patients : %{y}<extra>" + p + "</extra>"))
-        fig.add_vline(x=65, line_dash="dash", line_color=PALE, line_width=1.5, annotation_text="65 ans", annotation_position="top", annotation_font_color=PALE)
-        habiller(fig, 460, barmode="stack", bargap=0.04, xaxis_title="Âge", yaxis_title="Nombre de patients", margin=dict(l=20, r=20, t=30, b=100))
-        etendre(st.plotly_chart, fig)
-    with d:
-        st.subheader("Profil moyen de chaque segment")
-        res = df_alertes.groupby("Profil").agg(Age=("Age", "mean"), IMC=("IMC", "mean"), Fumeurs=("Fumeur_binaire", "mean"),
-                                               Hosp=("Hospitalisations", "mean"),
-                                               Crit=("Niveau_alerte", lambda s: (s == "Critique").mean())).reindex(ordre).dropna(how="all")
-        axes = [("Âge moyen", "Age", "{:.0f} ans"), ("IMC moyen", "IMC", "{:.1f}"), ("Taux de fumeurs", "Fumeurs", "{:.0%}"),
-                ("Hospitalisations", "Hosp", "{:.1f} en moyenne"), ("Alertes critiques", "Crit", "{:.0%}")]
-        maxi = res.max().replace(0, 1)
-        fig = go.Figure()
-        for p in res.index:
-            r = [float(res.loc[p, k] / maxi[k]) for _, k, _ in axes]
-            txt = [f.format(res.loc[p, k]) for _, k, f in axes]
-            th = [a for a, _, _ in axes]
-            fig.add_trace(go.Scatterpolar(r=r + [r[0]], theta=th + [th[0]], customdata=txt + [txt[0]], name=p, fill="toself",
-                                          fillcolor=rgba(COULEUR_PROFIL[p], 0.28), line=dict(color=COULEUR_PROFIL[p], width=3),
-                                          marker=dict(size=7, color=COULEUR_PROFIL[p]),
-                                          hovertemplate="<b>%{theta}</b><br>%{customdata}<extra>" + p + "</extra>"))
-        habiller(fig, 460, margin=dict(l=70, r=70, t=30, b=100),
-                 polar=dict(bgcolor="rgba(0,0,0,0)",
-                            radialaxis=dict(visible=True, range=[0, 1.05], showticklabels=False, gridcolor="rgba(127,211,255,.25)", linecolor="rgba(127,211,255,.25)"),
-                            angularaxis=dict(gridcolor="rgba(127,211,255,.25)", linecolor="rgba(127,211,255,.25)", tickfont=dict(size=12, color="#CFE6FF"))))
-        etendre(st.plotly_chart, fig)
-    st.write("")
+    st.subheader("Aperçu visuel des profils")
+    st.image(IMAGE_PROFILS, use_container_width=True)
 
-    st.subheader("Âge, IMC et hospitalisations par profil")
-    st.caption("Chaque point est un patient ; sa taille augmente avec le nombre d'hospitalisations. Lignes pointillées : seuils d'alerte (âge ≥ 65 ans, IMC ≥ 30).")
-    Trace = go.Scatter if n <= 5000 else go.Scattergl
-    fig = go.Figure()
-    for p in ordre:
-        dd = df_alertes[df_alertes["Profil"] == p]
-        fig.add_trace(Trace(x=dd["Age"], y=dd["IMC"], mode="markers", name=p, customdata=dd[["Patient_ID", "Hospitalisations"]].values,
-                            marker=dict(size=(8 + 3 * dd["Hospitalisations"].clip(upper=8)).tolist(), color=COULEUR_PROFIL[p], opacity=0.85, line=dict(color=NUIT, width=1)),
-                            hovertemplate="<b>%{customdata[0]}</b><br>Âge : %{x} ans<br>IMC : %{y}<br>Hospitalisations : %{customdata[1]}<extra>" + p + "</extra>"))
-    fig.add_hline(y=30, line_dash="dash", line_color=PALE, line_width=1.5, annotation_text="IMC ≥ 30", annotation_position="top left", annotation_font_color=PALE)
-    fig.add_vline(x=65, line_dash="dash", line_color=PALE, line_width=1.5, annotation_text="Âge ≥ 65", annotation_position="top right", annotation_font_color=PALE)
-    habiller(fig, 500, xaxis_title="Âge (ans)", yaxis_title="IMC", margin=dict(l=20, r=20, t=30, b=100))
-    etendre(st.plotly_chart, fig)
-    st.write("")
+    st.subheader("Galerie santé & accompagnement")
+    cartes_html = "".join(
+        f'<div class="gal-card"><img src="{url}" alt="{html.escape(leg)}" loading="lazy"><div class="gal-cap">{html.escape(leg)}</div></div>'
+        for leg, url in GALERIE_PHOTOS
+    )
+    st.markdown(
+        f'<div class="gal"><div class="gal-track">{cartes_html}{cartes_html}</div></div>',
+        unsafe_allow_html=True,
+    )
 
-    st.subheader("Répartition géographique par profil")
-    reg = pd.crosstab(df_alertes["Region"], df_alertes["Profil"]).reindex(columns=ordre, fill_value=0)
-    reg = reg.loc[reg.sum(axis=1).sort_values(ascending=True).index].tail(15)
-    fig = go.Figure()
-    for p in ordre:
-        fig.add_trace(go.Bar(y=reg.index, x=reg[p], name=p, orientation="h", marker=dict(color=COULEUR_PROFIL[p], line=dict(color=NUIT, width=1)),
-                             hovertemplate="<b>%{y}</b><br>" + p + " : %{x}<extra></extra>"))
-    habiller(fig, max(380, 48 * len(reg) + 140), barmode="stack", xaxis_title="Nombre de patients", margin=dict(l=20, r=20, t=30, b=100))
-    etendre(st.plotly_chart, fig)
-    st.write("")
+elif page == "📊 Tableau de bord":
+    st.title("Tableau de bord analytique")
 
-    g, d = st.columns(2, gap="large")
-    with g:
-        st.subheader("Répartition des alertes")
-        cn = df_alertes["Niveau_alerte"].value_counts().reindex(NIVEAUX, fill_value=0)
-        fig = go.Figure(go.Bar(x=NIVEAUX, y=list(cn.values), marker=dict(color=[COULEUR_NIVEAU[k] for k in NIVEAUX], line=dict(color=NUIT, width=1)),
-                               text=[f"{espace(v)}<br>({pourcent(v)})" for v in cn.values], textposition="outside", cliponaxis=False,
-                               textfont=dict(size=13, color="#FFFFFF"), hovertemplate="<b>%{x}</b><br>Patients : %{y}<extra></extra>"))
-        habiller(fig, 440, showlegend=False, margin=dict(l=20, r=20, t=30, b=30),
-                 yaxis=dict(title="Nombre de patients", range=[0, max(int(cn.max()), 1) * 1.3]))
-        etendre(st.plotly_chart, fig)
-    with d:
-        st.subheader("Niveaux d'alerte par profil")
-        cr = pd.crosstab(df_alertes["Profil"], df_alertes["Niveau_alerte"]).reindex(index=ordre, columns=NIVEAUX, fill_value=0)
-        fig = go.Figure()
-        for niv in NIVEAUX:
-            vals = [int(v) for v in cr[niv]]
-            fig.add_trace(go.Bar(y=[court(p, 22) for p in cr.index], x=vals, name=niv, orientation="h",
-                                 marker=dict(color=COULEUR_NIVEAU[niv], line=dict(color=NUIT, width=1.5)),
-                                 text=[str(v) if v > 0 else "" for v in vals], textposition="inside",
-                                 textfont=dict(color="#FFFFFF" if niv == "Faible" else "#06152E", size=13),
-                                 hovertemplate="<b>%{y}</b><br>" + niv + " : %{x}<extra></extra>"))
-        habiller(fig, 440, barmode="stack", margin=dict(l=20, r=20, t=30, b=80), xaxis_title="Nombre de patients",
-                 yaxis=dict(autorange="reversed", automargin=True, tickfont=dict(size=12, color="#CFE6FF")))
-        etendre(st.plotly_chart, fig)
-    st.write("")
+    f1, f2, f3 = st.columns(3)
+    regions_dispo = sorted(df_alertes["Region"].dropna().unique().tolist())
+    profils_dispo = list(PROFILS.values())
+    niveaux_dispo = NIVEAUX
 
-    st.subheader("Données segmentées")
-    st.caption("Sélectionnez un profil pour afficher ses patients, puis téléchargez le fichier CSV correspondant.")
-    fichiers = {ordre[0]: "patients_adultes_suivi_routine.csv", ordre[1]: "patients_seniors_tres_hospitalises.csv", ordre[2]: "patients_fumeurs_obeses.csv"}
-    effectifs = df_alertes["Profil"].value_counts()
-    choix = st.selectbox("Profil statistique", ["Tous les profils"] + ordre, key="filtre_profil_tableau",
-                         format_func=lambda o: f"{o}  —  {espace(n if o == 'Tous les profils' else int(effectifs.get(o, 0)))} patient(s)")
-    if choix == "Tous les profils":
-        dff, nom = df_alertes, "patients_segmentes.csv"
+    sel_reg = f1.multiselect("Régions", regions_dispo, default=regions_dispo)
+    sel_prof = f2.multiselect("Profils", profils_dispo, default=profils_dispo)
+    sel_niv = f3.multiselect("Niveaux d'alerte", niveaux_dispo, default=niveaux_dispo)
+
+    dff = df_alertes[
+        df_alertes["Region"].isin(sel_reg if sel_reg else regions_dispo)
+        & df_alertes["Profil"].isin(sel_prof if sel_prof else profils_dispo)
+        & df_alertes["Niveau_alerte"].isin(sel_niv if sel_niv else niveaux_dispo)
+    ].copy()
+
+    if dff.empty:
+        boite("Aucun patient ne correspond aux filtres sélectionnés.", "Filtre vide")
     else:
-        dff, nom = df_alertes[df_alertes["Profil"] == choix], fichiers[choix]
-    etendre(st.dataframe, dff[["Patient_ID", "Age", "Sexe", "IMC", "Fumeur", "Hospitalisations", "Region", "Profil", "Niveau_alerte"]], hide_index=True)
-    st.download_button(f"Télécharger : {choix} (CSV)", data=dff.to_csv(index=False).encode("utf-8-sig"), file_name=nom,
-                       mime="text/csv", disabled=dff.empty, key="telecharger_profil_csv")
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Patients filtrés", espace(len(dff)))
+        m2.metric("Âge moyen", f"{dff['Age'].mean():.1f} ans")
+        m3.metric("IMC moyen", f"{dff['IMC'].mean():.1f}")
+        m4.metric("Hospitalisations moy.", f"{dff['Hospitalisations'].mean():.2f}")
 
-# =========================================================
-# 8. ORIENTATION KNN
-# =========================================================
-elif page == PAGES[2]:
-    st.title("Orientation patient (KNN)")
-    st.markdown("Saisissez les caractéristiques d'un dossier pour obtenir une suggestion de profil statistique à partir des dossiers existants.")
-    if not colonnes_knn:
-        boite("Aucune caractéristique exploitable n'a été détectée dans les données.", "Données insuffisantes")
+        g1, g2 = st.columns(2)
+        with g1:
+            vc_p = dff["Profil"].value_counts().reindex(profils_dispo, fill_value=0)
+            fig_p = go.Figure(
+                go.Bar(
+                    x=[court(x, 22) for x in vc_p.index],
+                    y=vc_p.values,
+                    marker_color=[COULEUR_PROFIL.get(x, CIEL) for x in vc_p.index],
+                    text=vc_p.values,
+                    textposition="outside",
+                )
+            )
+            etendre(st.plotly_chart, habiller(fig_p, hauteur=380))
+
+        with g2:
+            vc_n = dff["Niveau_alerte"].value_counts().reindex(niveaux_dispo, fill_value=0)
+            fig_n = go.Figure(
+                go.Pie(
+                    labels=vc_n.index,
+                    values=vc_n.values,
+                    hole=0.52,
+                    marker=dict(colors=[COULEUR_NIVEAU.get(x, CIEL) for x in vc_n.index]),
+                )
+            )
+            etendre(st.plotly_chart, habiller(fig_n, hauteur=380))
+
+        fig_sc = go.Figure()
+        for prof in profils_dispo:
+            sub = dff[dff["Profil"] == prof]
+            if not sub.empty:
+                fig_sc.add_trace(
+                    go.Scatter(
+                        x=sub["Age"],
+                        y=sub["IMC"],
+                        mode="markers",
+                        name=prof,
+                        marker=dict(
+                            size=np.clip(sub["Hospitalisations"] * 3 + 7, 7, 24),
+                            color=COULEUR_PROFIL.get(prof, CIEL),
+                            opacity=0.82,
+                            line=dict(width=1, color="#FFFFFF"),
+                        ),
+                        text=sub["Patient_ID"],
+                    )
+                )
+        fig_sc.update_xaxes(title_text="Âge (années)")
+        fig_sc.update_yaxes(title_text="IMC")
+        etendre(st.plotly_chart, habiller(fig_sc, hauteur=410))
+
+elif page == "🧭 Orientation KNN":
+    st.title("Orientation d'un nouveau patient (K-Nearest Neighbors)")
+
+    if len(df_alertes) < 3:
+        boite("Au moins 3 dossiers patients sont nécessaires pour entraîner le modèle KNN.", "Données insuffisantes")
     else:
-        st.caption(f"{len(colonnes_knn)} caractéristique(s) utilisée(s). Les identifiants et colonnes techniques sont exclus.")
-        valeurs = {}
-        with st.form("form_orientation"):
-            gauche, droite = st.columns(2, gap="large")
-            for i, col in enumerate(colonnes_knn):
-                cible = gauche if i % 2 == 0 else droite
-                serie = df_base[col]
-                lib = str(col).replace("_", " ").strip()
-                with cible:
-                    if pd.api.types.is_numeric_dtype(serie):
-                        sn = pd.to_numeric(serie, errors="coerce")
-                        med = sn.median()
-                        dflt = float(med) if pd.notna(med) else 0.0
-                        mini = float(sn.min()) if sn.notna().any() else 0.0
-                        maxi = float(sn.max()) if sn.notna().any() else max(dflt, 1.0)
-                        if mini == maxi:
-                            maxi = mini + 1.0
-                        valeurs[col] = st.number_input(lib, min_value=mini, max_value=maxi, value=min(max(dflt, mini), maxi), key=f"knn_num_{col}")
-                    else:
-                        uniques = [v for v in serie.dropna().astype(str).str.strip().unique().tolist() if v] or ["Non renseigné"]
-                        mode = serie.dropna().astype(str).mode()
-                        if len(uniques) <= 40:
-                            opts = sorted(uniques)
-                            dflt = str(mode.iloc[0]) if not mode.empty and str(mode.iloc[0]) in opts else opts[0]
-                            valeurs[col] = st.selectbox(lib, opts, index=opts.index(dflt), key=f"knn_cat_{col}")
-                        else:
-                            valeurs[col] = st.text_input(lib, value=str(mode.iloc[0]) if not mode.empty else "", key=f"knn_text_{col}")
-            envoye = etendre(st.form_submit_button, "Analyser le dossier")
-        if envoye:
-            if knn is None:
-                boite("Le modèle KNN ne peut pas être entraîné avec les données actuelles.", "Analyse impossible")
-            else:
-                nouveau = pd.DataFrame([{c: valeurs.get(c, pd.NA) for c in colonnes_knn}])
-                comb = pd.concat([df_base[colonnes_knn], nouveau], ignore_index=True)
-                for c in colonnes_knn:
-                    if pd.api.types.is_numeric_dtype(df_base[c]):
-                        comb[c] = pd.to_numeric(comb[c], errors="coerce")
-                        m = pd.to_numeric(df_base[c], errors="coerce").median()
-                        comb[c] = comb[c].fillna(0 if pd.isna(m) else m)
-                    else:
-                        comb[c] = comb[c].fillna("Non renseigné").astype(str).str.strip()
-                enc = pd.get_dummies(comb, dummy_na=False, dtype=float).reindex(columns=colonnes_encodees, fill_value=0)
-                pred = knn.predict(scaler_knn.transform(enc.iloc[[-1]].astype(float)))[0]
-                profil = label_encoder.inverse_transform([pred])[0]
-                st.subheader("Résultat de l'analyse")
-                couleur = COULEUR_PROFIL.get(profil, CIEL)
-                st.markdown(f'<div class="pcard" style="border-top:5px solid {couleur};min-height:0;"><div style="color:#9FC4EA;font-size:13px;font-weight:700;letter-spacing:1px;">PROFIL STATISTIQUE SUGGÉRÉ</div><div class="n" style="font-size:26px;color:{couleur};">{html.escape(profil)}</div></div>', unsafe_allow_html=True)
-                facteurs = []
-                age_v = valeurs.get("Age", valeurs.get("Âge"))
-                if age_v is not None and pd.to_numeric(age_v, errors="coerce") >= 65: facteurs.append("Âge égal ou supérieur à 65 ans")
-                if valeurs.get("IMC") is not None and pd.to_numeric(valeurs.get("IMC"), errors="coerce") >= 30: facteurs.append("IMC égal ou supérieur à 30")
-                if valeurs.get("Hospitalisations") is not None and pd.to_numeric(valeurs.get("Hospitalisations"), errors="coerce") >= 3: facteurs.append("Trois hospitalisations ou plus")
-                if str(valeurs.get("Fumeur", "")).lower() in {"oui", "yes", "1", "true"}: facteurs.append("Tabagisme déclaré")
-                if facteurs:
-                    boite(" ; ".join(facteurs) + ".", "Facteurs à examiner")
-                else:
-                    boite("Aucun des facteurs de vigilance reconnus par les règles de l'application n'a été détecté.", "Facteurs de vigilance")
-                boite("Vérifiez les informations du dossier et faites confirmer toute décision par un professionnel de santé. Le profil prédit est une suggestion statistique, pas un diagnostic.", "Aide à la décision")
+        k_val = st.slider("Nombre de voisins (K)", min_value=1, max_value=min(15, len(df_alertes)), value=5)
+        bundle = entrainer_knn(df_alertes, k=k_val)
 
-# =========================================================
-# 9. ALERTES
-# =========================================================
-elif page == PAGES[3]:
-    st.title("Registre des alertes")
-    st.caption("Les alertes signalent des facteurs de vigilance définis dans l'application ; elles ne remplacent pas une évaluation clinique.")
-    filtres = st.multiselect("Filtrer par niveau d'alerte", NIVEAUX, default=["Critique", "Élevé"])
-    recherche = st.text_input("Rechercher un patient par identifiant ou région")
-    vue = df_alertes.copy()
-    if filtres:
-        vue = vue[vue["Niveau_alerte"].isin(filtres)]
-    if recherche.strip():
-        t = recherche.strip().lower()
-        vue = vue[vue["Patient_ID"].astype(str).str.lower().str.contains(t, na=False) | vue["Region"].astype(str).str.lower().str.contains(t, na=False)]
-    a, b, c = st.columns(3)
-    a.metric("Alertes critiques", int((vue["Niveau_alerte"] == "Critique").sum()))
-    b.metric("Alertes élevées", int((vue["Niveau_alerte"] == "Élevé").sum()))
-    c.metric("Alertes modérées", int((vue["Niveau_alerte"] == "Modéré").sum()))
-    st.write("")
-    if vue.empty:
-        boite("Aucun dossier ne correspond aux filtres sélectionnés.", "Aucun résultat")
-    else:
-        prio = {k: i for i, k in enumerate(NIVEAUX)}
-        vue["Priorite_tri"] = vue["Niveau_alerte"].map(prio)
-        vue = vue.sort_values(["Priorite_tri", "Nombre_facteurs_alerte"], ascending=[True, False])
-        cols = ["Patient_ID", "Age", "Sexe", "IMC", "Fumeur", "Hospitalisations", "Region", "Profil", "Niveau_alerte", "Recommandation"]
-        etendre(st.dataframe, vue[cols], hide_index=True, column_config={
-            "Niveau_alerte": st.column_config.TextColumn("Niveau d'alerte"),
-            "Recommandation": st.column_config.TextColumn("Piste de vigilance", width="large")})
-        st.download_button("Exporter le registre filtré (CSV)", data=vue[cols].to_csv(index=False).encode("utf-8-sig"), file_name="registre_alertes.csv", mime="text/csv")
-    st.write("")
-    st.subheader("Signification des niveaux")
-    st.markdown("".join(
-        f'<span class="badge-niv" style="background:{COULEUR_NIVEAU[k]};color:{"#FFFFFF" if k == "Faible" else "#06152E"};">{k}</span>' for k in NIVEAUX), unsafe_allow_html=True)
-    boite("<b>Critique</b> : trois facteurs de vigilance ou plus · <b>Élevé</b> : deux facteurs · <b>Modéré</b> : un facteur · <b>Faible</b> : aucun facteur parmi les règles de l'application (âge ≥ 65 ans, IMC ≥ 30, ≥ 3 hospitalisations, tabagisme).")
+        with st.form("form_knn"):
+            c1, c2, c3 = st.columns(3)
+            age_in = c1.number_input("Âge", min_value=0, max_value=120, value=55)
+            imc_in = c2.number_input("IMC", min_value=10.0, max_value=80.0, value=28.5, step=0.1)
+            hosp_in = c3.number_input("Hospitalisations", min_value=0, max_value=50, value=2)
 
-# =========================================================
-# 10. DONNÉES (import CSV)
-# =========================================================
-elif page == PAGES[4]:
-    st.title("Données")
-    st.markdown("Importez le fichier CSV des patients : la segmentation, les graphiques et les alertes se mettent à jour automatiquement.")
-    boite(html.escape(st.session_state["source_donnees"]), "Source actuelle")
-    fichier = st.file_uploader("Importer un fichier CSV", type=["csv"], accept_multiple_files=False,
-                               help="Séparateur virgule, point-virgule ou tabulation. Les fichiers Excel ne sont pas acceptés.")
-    if fichier is not None:
-        if not fichier.name.lower().endswith(".csv"):
-            boite("Veuillez sélectionner un fichier .csv uniquement.", "Format non accepté")
-        else:
-            try:
-                signature = hashlib.sha256(fichier.getvalue()).hexdigest()
-                if st.session_state.get("signature_csv_importe") != signature:
-                    brut = lire_fichier_csv(fichier)
-                    prepare = preparer_donnees(brut)
-                    st.session_state["patients_base"] = prepare
-                    st.session_state["source_donnees"] = f"CSV importé : {fichier.name} ({len(prepare)} patients)"
-                    st.session_state["signature_csv_importe"] = signature
-                    st.session_state["message_import"] = f"{espace(len(brut))} lignes lues, {espace(len(prepare))} patients conservés, {len(brut.columns)} colonnes détectées."
-                    st.rerun()
-                else:
-                    boite(st.session_state.get("message_import", "Fichier déjà importé."), "Importation réussie")
-            except Exception as exc:
-                boite(html.escape(str(exc)), "Erreur lors de la lecture du CSV")
-    st.write("")
-    st.subheader("Aperçu des données utilisées")
-    etendre(st.dataframe, df_base.drop(columns=["Fumeur_binaire"], errors="ignore").head(200), hide_index=True)
-    st.caption("Colonnes attendues : Patient_ID, Age, Sexe, IMC, Fumeur, Hospitalisations, Region. Les colonnes manquantes sont complétées par des valeurs par défaut.")
-    st.download_button("Télécharger un modèle de fichier CSV", data=creer_donnees_demo(20).to_csv(index=False).encode("utf-8-sig"), file_name="modele_patients.csv", mime="text/csv")
+            c4, c5, c6 = st.columns(3)
+            sexe_opts = sorted(df_alertes["Sexe"].unique().tolist()) or ["Femme", "Homme"]
+            fumeur_opts = ["Non", "Oui"]
+            reg_opts = sorted(df_alertes["Region"].unique().tolist()) or ["Thiès", "Dakar"]
 
-# =========================================================
-# 11. MON PROFIL
-# =========================================================
-elif page == PAGES[5]:
-    st.title("Mon profil professionnel")
-    st.caption("Présentation du développeur de la plateforme")
+            sexe_in = c4.selectbox("Sexe", sexe_opts)
+            fumeur_in = c5.selectbox("Fumeur", fumeur_opts)
+            reg_in = c6.selectbox("Région", reg_opts)
+
+            soumis = st.form_submit_button("Orienter le patient", use_container_width=True)
+
+        if soumis:
+            saisies = {
+                "Age": age_in,
+                "IMC": imc_in,
+                "Hospitalisations": hosp_in,
+                "Sexe": sexe_in,
+                "Fumeur": fumeur_in,
+                "Fumeur_binaire": 1 if fumeur_in == "Oui" else 0,
+                "Region": reg_in,
+            }
+            pred, probs_dict, voisins = predire_knn(bundle, saisies)
+            boite(f"Profil orienté : {pred}", "Résultat de classification KNN")
+
+            prob_df = pd.DataFrame(
+                [{"Profil": k_p, "Probabilité (%)": round(v * 100, 1)} for k_p, v in probs_dict.items()]
+            ).sort_values("Probabilité (%)", ascending=False)
+            etendre(st.dataframe, prob_df, hide_index=True)
+
+            st.subheader("Voisins les plus proches")
+            cols_aff = [c for c in ["Patient_ID", "Age", "IMC", "Fumeur", "Hospitalisations", "Region", "Profil", "Distance"] if c in voisins.columns]
+            etendre(st.dataframe, voisins[cols_aff], hide_index=True)
+
+elif page == "🚨 Alertes":
+    st.title("Suivi des alertes cliniques")
+
+    niv_filtre = st.multiselect("Filtrer par niveau d'alerte", NIVEAUX, default=NIVEAUX)
+    recherche = st.text_input("Recherche par identifiant patient ou région", "").strip()
+
+    dfa = df_alertes[df_alertes["Niveau_alerte"].isin(niv_filtre if niv_filtre else NIVEAUX)].copy()
+    if recherche:
+        masque = (
+            dfa["Patient_ID"].astype(str).str.contains(recherche, case=False, na=False)
+            | dfa["Region"].astype(str).str.contains(recherche, case=False, na=False)
+        )
+        dfa = dfa[masque]
+
+    st.metric("Dossiers affichés", espace(len(dfa)))
+    cols_alerte = [
+        c for c in [
+            "Patient_ID", "Age", "Sexe", "IMC", "Fumeur", "Hospitalisations",
+            "Region", "Profil", "Nombre_facteurs_alerte", "Niveau_alerte", "Recommandation"
+        ] if c in dfa.columns
+    ]
+    etendre(st.dataframe, dfa[cols_alerte], hide_index=True)
+
+    csv_bytes = dfa[cols_alerte].to_csv(index=False).encode("utf-8-sig")
+    etendre(
+        st.download_button,
+        "Télécharger les alertes (CSV)",
+        data=csv_bytes,
+        file_name="alertes_patients.csv",
+        mime="text/csv",
+    )
+
+elif page == "📁 Données":
+    st.title("Gestion des données patients")
+    st.caption(f"Source actuelle : {st.session_state.get('source_donnees', 'Démonstration')}")
+
+    fichier_up = st.file_uploader("Importer un fichier CSV de patients", type=["csv"])
+    col_a, col_b = st.columns(2)
+
+    if fichier_up is not None:
+        try:
+            df_lu = lire_fichier_csv(fichier_up)
+            st.session_state["patients_base"] = preparer_donnees(df_lu)
+            st.session_state["source_donnees"] = f"Import CSV ({fichier_up.name})"
+            st.success(f"{len(df_lu)} lignes chargées avec succès.")
+            st.rerun()
+        except Exception as exc:
+            st.error(str(exc))
+
+    if col_a.button("Recharger la base démo (300 patients)", use_container_width=True):
+        st.session_state["patients_base"] = preparer_donnees(creer_donnees_demo(300))
+        st.session_state["source_donnees"] = "Données fictives de démonstration"
+        st.rerun()
+
+    csv_complet = df_alertes.to_csv(index=False).encode("utf-8-sig")
+    col_b.download_button(
+        "Exporter la base segmentée (CSV)",
+        data=csv_complet,
+        file_name="patients_segmentes.csv",
+        mime="text/csv",
+        use_container_width=True,
+    )
+
+    etendre(st.dataframe, df_alertes, hide_index=True)
+
+elif page == "👤 Mon profil":
+    st.title("Profil & Architecture du projet")
+    boite(
+        "Plateforme conçue pour l'analyse exploratoire, la segmentation hiérarchique (CAH / Ward), "
+        "l'orientation clinique (KNN) et la priorisation des alertes patients.",
+        "À propos de la solution",
+    )
     if PHOTO_PROFIL:
-        avatar = f'<img src="{PHOTO_PROFIL}" alt="Ibrahima Dieng" style="width:100%;height:100%;object-fit:cover;object-position:50% 25%;display:block;" />'
-    else:
-        avatar = '<span style="font-size:52px;font-weight:850;color:#06152E;">ID</span>'
-    st.markdown(f"""
-    <div style="background:linear-gradient(150deg,{NUIT2},#0B1F3F);border:1px solid rgba(127,211,255,.3);border-top:6px solid {CIEL};border-radius:20px;padding:34px;box-shadow:0 14px 36px rgba(0,0,0,.45);">
-      <div style="text-align:center;margin-bottom:20px;">
-        <div style="display:inline-flex;align-items:center;justify-content:center;width:160px;height:160px;border-radius:50%;background:linear-gradient(135deg,{CIEL},{CLAIR});border:4px solid {PALE};box-shadow:0 0 36px rgba(127,211,255,.55);overflow:hidden;">{avatar}</div>
-        <div style="margin-top:16px;color:{CLAIR};font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;">Développeur de la plateforme</div>
-        <h2 style="color:#FFFFFF;margin:6px 0 8px 0;">Ibrahima Dieng</h2>
-        <p style="color:{CLAIR};font-size:18px;font-weight:700;margin-bottom:8px;">Junior en Data Science et Intelligence Artificielle</p>
-      </div>
-      <p style="color:#D5E8FF;font-size:16px;line-height:1.8;text-align:center;max-width:850px;margin:0 auto 22px auto;">Passionné par l'analyse des données et l'intelligence artificielle, je m'intéresse à la conception de solutions fondées sur les données pour faciliter l'analyse et l'aide à la décision.</p>
-      <hr style="border:1px solid rgba(127,211,255,.2);">
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:18px;">
-        <div style="background:rgba(47,155,255,.14);border:1px solid rgba(127,211,255,.25);border-radius:12px;padding:14px;color:#D5E8FF;"><strong style="color:#fff;">📞 Téléphone</strong><br><a href="tel:772829234" style="color:{CLAIR};">772829234</a></div>
-        <div style="background:rgba(47,155,255,.14);border:1px solid rgba(127,211,255,.25);border-radius:12px;padding:14px;color:#D5E8FF;"><strong style="color:#fff;">✉️ E-mail</strong><br><a href="mailto:ibrahimadieng997@gmail.com" style="color:{CLAIR};">ibrahimadieng997@gmail.com</a></div>
-        <div style="background:rgba(47,155,255,.14);border:1px solid rgba(127,211,255,.25);border-radius:12px;padding:14px;color:#D5E8FF;"><strong style="color:#fff;">💻 GitHub</strong><br><a href="https://github.com/ibrahimadieng997boop" target="_blank" rel="noopener noreferrer" style="color:{CLAIR};">Consulter mes projets</a></div>
-        <div style="background:rgba(47,155,255,.14);border:1px solid rgba(127,211,255,.25);border-radius:12px;padding:14px;color:#D5E8FF;"><strong style="color:#fff;">📍 Adresse</strong><br>Thiès, Médina Fall, Sénégal</div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
-    st.write("")
-    st.subheader("Compétences et domaines d'intérêt")
-    cols = st.columns(3, gap="large")
-    for col, (t, d) in zip(cols, [("📊 Analyse de données", "Exploration, préparation et analyse des données."),
-                                   ("🤖 Intelligence artificielle", "Machine Learning et modélisation prédictive."),
-                                   ("🏥 Data Science en santé", "Segmentation des patients et aide à l'analyse.")]):
-        col.markdown(f'<div class="pcard" style="text-align:center;min-height:150px;border-top:5px solid {CIEL};"><h4>{html.escape(t)}</h4><div class="d">{html.escape(d)}</div></div>', unsafe_allow_html=True)
-
-# =========================================================
-# 12. PIED DE PAGE
-# =========================================================
-st.write("")
-st.divider()
-st.caption("Plateforme de démonstration analytique. Les profils et alertes sont indicatifs et doivent être validés par les professionnels de santé. Protégez les données personnelles et n'utilisez pas cet outil seul pour prendre une décision clinique.")
+        st.image(PHOTO_PROFIL, width=220)
+    st.markdown(
+        """
+        - **Segmentation non supervisée** : Classification Ascendante Hiérarchique (Ward) sur variables cliniques standardisées.
+        - **Orientation supervisée** : Algorithme *K-Nearest Neighbors* avec affichage des voisins proches et probabilités.
+        - **Surveillance & alertes** : Détection multicritères (âge, IMC, hospitalisations, tabagisme) et export CSV.
+        """
+    )
