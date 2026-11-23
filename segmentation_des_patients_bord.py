@@ -1088,6 +1088,15 @@ input, textarea { color:#FFFFFF !important; -webkit-text-fill-color:#FFFFFF !imp
 [data-testid="stFileUploaderDropzone"] * { color:#CFE6FF !important; }
 [data-testid="stForm"] { background:linear-gradient(150deg,rgba(15,42,82,.7),rgba(10,26,51,.7)); border:1px solid rgba(127,211,255,.22); border-radius:18px; padding:20px; }
 
+/* ---------- BOÎTES DE DIALOGUE STREAMLIT (menu, Clear caches...) ---------- */
+div[data-testid="stDialog"] div[role="dialog"] { background:linear-gradient(150deg,@NUIT2@,#0B1F3F) !important; border:1px solid rgba(127,211,255,.35); border-radius:18px; }
+div[data-testid="stDialog"] div[role="dialog"] *, div[data-testid="stDialog"] p, div[data-testid="stDialog"] h1, div[data-testid="stDialog"] h2, div[data-testid="stDialog"] h3 { color:#FFFFFF !important; }
+div[data-testid="stDialog"] code { background:rgba(127,211,255,.18) !important; color:@PALE@ !important; border-radius:6px; padding:2px 6px; }
+div[data-testid="stDialog"] button[aria-label="Close"], div[data-testid="stDialog"] button[aria-label="Close"] svg { color:#FFFFFF !important; fill:#FFFFFF !important; }
+div[data-testid="stDialog"] .stButton>button, div[data-testid="stDialog"] button[kind] { background:linear-gradient(135deg,@ROYAL@,@CIEL@) !important; border:1px solid rgba(127,211,255,.5) !important; color:#FFFFFF !important; }
+div[data-testid="stDialog"] .stButton>button:hover { background:linear-gradient(135deg,@CIEL@,@CLAIR@) !important; color:#06152E !important; }
+div[data-testid="stDialog"] .stButton>button:hover * { color:#06152E !important; }
+
 /* ---------- GALERIE ---------- */
 .gal { width:100%; overflow:hidden; padding:16px 0; background:linear-gradient(135deg,#071326,@NUIT2@); border:1px solid rgba(127,211,255,.25); border-radius:18px; }
 .gal-track { display:flex; width:max-content; gap:18px; animation:gal-scroll 40s linear infinite; }
