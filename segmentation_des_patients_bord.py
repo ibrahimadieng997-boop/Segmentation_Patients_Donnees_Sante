@@ -962,17 +962,22 @@ HERO_ILLUSTRATION = "data:image/svg+xml;base64," + base64.b64encode(HERO_SVG.enc
 #   assets/photo_profil.jpg  (photo de Ibrahima Dieng)
 # ---------------------------------------------------------
 def charger_image(nom):
+    """Cherche assets/<nom>.(jpg|jpeg|png|webp) ou <nom>.(...) à côté de app.py."""
     base = Path(__file__).resolve().parent
-    for chemin in (base / "assets" / nom, base / nom):
-        if chemin.exists():
-            mime = "image/png" if chemin.suffix.lower() == ".png" else "image/jpeg"
-            return f"data:{mime};base64," + base64.b64encode(chemin.read_bytes()).decode("ascii")
+    radical = Path(nom).stem
+    mimes = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
+    for dossier in (base / "assets", base):
+        for ext, mime in mimes.items():
+            chemin = dossier / f"{radical}{ext}"
+            if chemin.exists():
+                return f"data:{mime};base64," + base64.b64encode(chemin.read_bytes()).decode("ascii")
     return ""
 
 
-PHOTO_GAUCHE = charger_image("photo_gauche.jpg")
-PHOTO_DROITE = charger_image("photo_droite.jpg")
-PHOTO_PROFIL = charger_image("photo_profil.jpg")
+PHOTO_GAUCHE = charger_image("photo_gauche")
+PHOTO_DROITE = charger_image("photo_droite")
+PHOTO_PROFIL = charger_image("photo_profil")
+IMAGE_PROFILS = charger_image("hero_patients") or HERO_ILLUSTRATION
 
 GALERIE_PHOTOS = [
     ("Consultation médicale", "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80"),
@@ -1376,7 +1381,7 @@ if page == PAGES[0]:
     st.write("")
 
     st.subheader("Les trois profils statistiques")
-    st.markdown(f'<div style="background:linear-gradient(120deg,#071326,{NUIT2});border:1px solid rgba(127,211,255,.25);border-radius:20px;padding:14px 10px;box-shadow:0 12px 30px rgba(0,0,0,.4);margin-bottom:16px;"><img src="{HERO_ILLUSTRATION}" style="width:100%;max-height:340px;object-fit:contain;display:block;" alt="Les trois profils de patients"></div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="border:1px solid rgba(127,211,255,.3);border-radius:20px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.4);margin-bottom:16px;line-height:0;"><img src="{IMAGE_PROFILS}" style="width:100%;height:auto;display:block;" alt="Les trois profils de patients"></div>', unsafe_allow_html=True)
     descr = {
         PROFILS[0]: "Âge intermédiaire, IMC modéré et peu d'hospitalisations : un suivi de routine suffit en général.",
         PROFILS[1]: "Âge élevé et hospitalisations répétées : profil nécessitant une attention soutenue du parcours de soins.",
